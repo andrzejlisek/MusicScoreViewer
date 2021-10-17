@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html> 
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/> 
+        <meta charset="UTF-8">
+        <title>Music Score Viewer</title>
+        <script src="pdf.js"></script>
+        <script type="text/javascript" src="unistorage.js"></script>
+        <script type="text/javascript" src="core.js"></script>
+        <script type="text/javascript" src="preview.js"></script>
+        <script type="text/javascript" src="adjust.js"></script>
+        <script type="text/javascript" src="mouse.js"></script>
+        <script type="text/javascript" src="pedal.js"></script>
+        <style>
+            .unselectable {
+                //-webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+                //pointer-events: none;
+            }
+            .lock-screen {
+                height: 100%;
+                overflow: hidden;
+                width: 100%;
+                //position: fixed;
+            }
+        </style>
+    </head> 
+    <body>
+        <div id="ParamCtrl" style="background-color:white">
+            PDF file: <input type="file" id="FileName" onchange="LoadFileChange()"><br>
+            <br>
+
+            Resolution: <input type="number" id="PageScale" value="1" min="1" max="1000000" size="5"><br>
+
+            Display mode: <select id="DisplayMode" onchange="PreviewUpdate()">
+                <option>Single page</option>
+                <option>Even-odd, flip one</option>
+                <option>Odd-even, flip one</option>
+                <option>Even-odd, flip two</option>
+                <option>Odd-even, flip two</option>
+            </select><br>
+
+            Page layout: <select id="DisplayLayout" onchange="PreviewUpdate()">
+                <option>Left, right</option>
+                <option>Top, bottom</option>
+                <option>Right, left</option>
+                <option>Bottom, top</option>
+            </select><br>
+
+            Page orient.: <select id="Orientation" onchange="PreviewUpdate()">
+                <option>Up</option>
+                <option>Right</option>
+                <option>Down</option>
+                <option>Left</option>
+            </select><br>
+
+            Zone orient.: <select id="SwitchMode" onchange="PreviewUpdate()">
+                <option>Hori. lower, right</option>
+                <option>Hori. upper, right</option>
+                <option>Vert. right, down</option>
+                <option>Vert. left, down</option>
+                <option>Hori. lower, left</option>
+                <option>Hori. upper, left</option>
+                <option>Vert. right, up</option>
+                <option>Vert. left, up</option>
+            </select><br>
+
+            <br>
+            Screen preview:
+            <table border="5" cellpadding="0" cellspacing="0" id="LayoutPreview">
+                <tr><td align="center">X</td><td align="center">X</td><td align="center">X</td><td align="center">X</td></tr>
+                <tr><td align="center">X</td><td align="center">X</td><td align="center">X</td><td align="center">X</td></tr>
+                <tr><td align="center">X</td><td align="center">X</td><td align="center">X</td><td align="center">X</td></tr>
+                <tr><td align="center">X</td><td align="center">X</td><td align="center">X</td><td align="center">X</td></tr>
+            </table>
+
+            <br>
+
+            <button onclick="ToggleFullScreen()">&nbsp;<br>&nbsp;&nbsp;Fullscreen&nbsp;&nbsp;<br>&nbsp;</button>
+            <button onclick="LoadFile()">&nbsp;<br>&nbsp;&nbsp;Show file&nbsp;&nbsp;<br>&nbsp;</button>
+            
+            <br>
+            <br>
+
+            Crop:
+            <table border="1">
+                <tr>
+                    <td></td><td>Odd</td><td>Even</td>
+                </tr>
+                <tr>
+                    <td>Left</td><td><input type="number" id="CropL0" value="0" min="0" max="100" size="5"></td><td><input type="number" id="CropL1" value="0" min="0" max="100" size="5"></td>
+                </tr>
+                <tr>
+                    <td>Top</td><td><input type="number" id="CropT0" value="0" min="0" max="100" size="5"></td><td><input type="number" id="CropT1" value="0" min="0" max="100" size="5"></td>
+                </tr>
+                <tr>
+                    <td>Right</td><td><input type="number" id="CropR0" value="0" min="0" max="100" size="5"></td><td><input type="number" id="CropR1" value="0" min="0" max="100" size="5"></td>
+                </tr>
+                <tr>
+                    <td>Bottom</td><td><input type="number" id="CropB0" value="0" min="0" max="100" size="5"></td><td><input type="number" id="CropB1" value="0" min="0" max="100" size="5"></td>
+                </tr>
+            </table>
+            <br>
+            Levels:
+            <table border="1">
+                <tr>
+                    <td></td><td>Input</td><td>Output</td>
+                </tr>
+                <tr>
+                    <td>Low</td>
+                    <td><input type="number" id="LevelI1" value="0" min="0" max="255" size="5"></td>
+                    <td><input type="number" id="LevelO1" value="0" min="0" max="255" size="5"></td>
+                </tr>
+                <tr>
+                    <td>Gamma</td>
+                    <td><input type="number" id="LevelIG" value="1000" min="100" max="10000" size="5"></td>
+                    <td>&nbsp;</td>
+                </tr>
+                <tr>
+                    <td>High</td>
+                    <td><input type="number" id="LevelI2" value="255" min="0" max="255" size="5"></td>
+                    <td><input type="number" id="LevelO2" value="255" min="0" max="255" size="5"></td>
+                </tr>
+            </table>
+            <br>
+
+            Adjust area: <input type="number" id="AdjustArea" value="20" min="0" max="100" size="5"><br>
+            Pointer type: <select id="TouchScreen">
+                <option>Mouse</option>
+                <option>Touch</option>
+            </select><br>
+            <br>
+
+            Keyboard alpha: <select id="PedalKey1">
+                <option>Normal</option>
+                <option>Adjust</option>
+                <option>-1</option>
+                <option>+1</option>
+                <option>-10</option>
+                <option>+10</option>
+            </select><br>
+            Keyboard arrows: <select id="PedalKey2">
+                <option>Normal</option>
+                <option>Adjust</option>
+                <option>-1</option>
+                <option>+1</option>
+                <option>-10</option>
+                <option>+10</option>
+            </select><br>
+            Keyboard numpad: <select id="PedalKey3">
+                <option>Normal</option>
+                <option>Adjust</option>
+                <option>-1</option>
+                <option>+1</option>
+                <option>-10</option>
+                <option>+10</option>
+            </select><br>
+            <br>
+
+            Mouse left: <select id="PedalMouseL">
+                <option>Normal</option>
+                <option>Adjust</option>
+                <option>-1</option>
+                <option>+1</option>
+                <option>-10</option>
+                <option>+10</option>
+            </select><br>
+            Mouse right: <select id="PedalMouseR">
+                <option>Normal</option>
+                <option>Adjust</option>
+                <option>-1</option>
+                <option>+1</option>
+                <option>-10</option>
+                <option>+10</option>
+            </select><br>
+            Mouse middle: <select id="PedalMouseM">
+                <option>Normal</option>
+                <option>Adjust</option>
+                <option>-1</option>
+                <option>+1</option>
+                <option>-10</option>
+                <option>+10</option>
+            </select><br>
+
+        </div>
+
+        <div id="Screen" class="unselectable" style="display:none;background-color:#010000;width:100px; height:100px;overflow:auto;border-style:none; position: relative;">
+            <canvas id="Screen0" style="border: 0px solid #000000; position: absolute; left:0px; top:0px; display: none;"></canvas>
+            <canvas id="Screen1" style="border: 0px solid #000000; position: absolute; left:0px; top:0px; display: none;"></canvas>
+            <canvas id="Screen2" style="border: 0px solid #000000; position: absolute; left:0px; top:0px; display: none;"></canvas>
+            <canvas id="Screen3" style="border: 0px solid #000000; position: absolute; left:0px; top:0px; display: none;"></canvas>
+            <canvas id="Screen4" style="border: 0px solid #000000; position: absolute; left:0px; top:0px; display: none;"></canvas>
+            <canvas id="Screen5" style="border: 0px solid #000000; position: absolute; left:0px; top:0px; display: none;"></canvas>
+
+            <div id="ScreenMouse" style="background-color:#000000; opacity: 0.00; position: absolute; left:0px; top:0px; right:0px; bottom:0px">
+        </div>
+        <script src="init.js"></script>
+
+
+    </body> 
+</html> 
