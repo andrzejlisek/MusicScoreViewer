@@ -37,12 +37,7 @@ function PedalKeyboardClear()
 
 function PedalKeyboardDown(Evt)
 {
-    if (PedalKeyDisabled || PedalAdjust)
-    {
-        return;
-    }
-
-    if (Evt.repeat)
+    if (PedalKeyDisabled || PedalAdjust || Evt.repeat || (!(Evt.code)) || (Evt.code == ""))
     {
         return;
     }
