@@ -16,10 +16,17 @@ function PreviewInit()
 
 function PreviewUpdate()
 {
-    DispMode = document.getElementById('DisplayMode').selectedIndex;
-    PageLayout = document.getElementById('DisplayLayout').selectedIndex;
+    DispMode = document.getElementById("DisplayMode").selectedIndex;
+    PageLayout = document.getElementById("DisplayLayout").selectedIndex;
     PageSwitch = document.getElementById("SwitchMode").selectedIndex;
     PageOrientation = document.getElementById("Orientation").selectedIndex;
+
+    ScreenInfoDisplay = document.getElementById("ScreenInfoDisplay").selectedIndex;
+    ScreenInfoOrientation = document.getElementById("ScreenInfoOrientation").selectedIndex;
+    ScreenInfoSize = document.getElementById("ScreenInfoSize").value;
+    ScreenInfoColor = document.getElementById("ScreenInfoColor").selectedIndex;
+    DispNotStretch = document.getElementById("DispNotStretch").selectedIndex;
+
 
     var Space1 = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>";
     var Space2 = "<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";

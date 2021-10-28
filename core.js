@@ -1,10 +1,18 @@
 "use strict";
 
 var pdfDoc = null;
-var scale = 1;
+
+var DispNotStretch = 0;
+var ScaleN = 1;
+var ScaleD = 1;
+var Scale = 1;
 var PageNum = 1;
 var PageCount = 1;
 var PageRendering = false;
+var ScreenInfoDisplay = 0;
+var ScreenInfoOrientation = 0;
+var ScreenInfoSize = 20;
+var ScreenInfoColor = 0;
 
 var Canvas = [];
 var CanvasCtx = [];
@@ -29,22 +37,30 @@ var LevelsO1 = 0;
 var LevelsO2 = 255;
 var LevelsGamma = 1000;
 
-
 var DispMode = 0;
 var DispBufSize = 6;
+
 
 var DispPointer1 = 0;
 var DispPointer2 = 0;
 var DispPage;
 var DispLoaded;
 var DispFirst = true;
+var DispResolutionFactor = window.devicePixelRatio;
 
 var ScreenObj;
 var ScreenW = 100;
 var ScreenH = 100;
+var ScreenInfo1;
+var ScreenInfo2;
 
+var SaveImageMode = 0;
 
 var CanvasBuf = [];
+var CanvasBufW = [];
+var CanvasBufH = [];
+var CanvasBufGuideW = [];
+var CanvasBufGuideH = [];
 
 var PaintLevels = [];
 var PaintThreshold = [];
@@ -78,23 +94,33 @@ function LevelsGenerate()
         }
     }
 }        
-        
+       
+       
 function LoadPdf(data)
 {
-    document.getElementById('ParamCtrl').style.display = "none";
-    AdjustArea = document.getElementById('AdjustArea').value;
+    document.getElementById("ParamCtrl").style.display = "none";
+    AdjustArea = document.getElementById("AdjustArea").value;
+    ScaleN = parseFloat(document.getElementById("PageScaleN").value);
+    ScaleD = parseFloat(document.getElementById("PageScaleD").value);
+    
+    ScreenInfo1 = document.getElementById("ScreenInfo1");
+    ScreenInfo2 = document.getElementById("ScreenInfo2");
+    
+    SaveImageMode = document.getElementById("SaveImageMode").selectedIndex;
     
     SettingsSave();    
     AdjustMode = 1;
     Adjust(0);
     AdjustMode = 2;
     Adjust(0);
+    AdjustMode = 3;
+    Adjust(0);
     AdjustMode = 0;
     PedalSet();
     LevelsGenerate();
 
-    ScreenObj = document.getElementById('Screen');
-    if (document.getElementById('TouchScreen').selectedIndex == 1)
+    ScreenObj = document.getElementById("Screen");
+    if (document.getElementById("TouchScreen").selectedIndex == 1)
     {
         ConfTouch = 1;
     }
@@ -110,7 +136,6 @@ function LoadPdf(data)
     //var url = {data: atob(data.replace(/\r\n/g,""))};
     var url = {data: data};
     
-    scale = parseFloat(document.getElementById('PageScale').value);
     DispPage = [];
     DispLoaded = [];
     PageNum = 1;
@@ -134,8 +159,8 @@ function LoadPdf(data)
     }
     for (var I = 0; I < DispBufSize; I++)
     {
-        Canvas[I] = document.getElementById('Screen' + I);
-        CanvasCtx[I] = Canvas[I].getContext('2d');
+        Canvas[I] = document.getElementById("Screen" + I);
+        CanvasCtx[I] = Canvas[I].getContext("2d");
         if (I >= 5)
         {
             DispPage.push(-1);
@@ -148,10 +173,10 @@ function LoadPdf(data)
     }
     
     // Loaded via <script> tag, create shortcut to access PDF.js exports.
-    var pdfjsLib = window['pdfjs-dist/build/pdf'];
+    var pdfjsLib = window["pdfjs-dist/build/pdf"];
 
     // The workerSrc property shall be specified.
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.js';
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "pdf.worker.js";
 
 
     pdfjsLib.getDocument(url).promise.then(function (pdfDoc_)
@@ -224,16 +249,27 @@ function DisplayVisible(N, V)
         FitHeight = false;
     }
     
-    if (FitHeight)
+    if (DispNotStretch == 0)
     {
-        CanvasW = Math.floor((CanvasH * Canvas[N].width) / Canvas[N].height);
-        CanvasX = Math.round((ScreenW_ - CanvasW) / 2);
+        if (FitHeight)
+        {
+            CanvasW = Math.floor((CanvasH * Canvas[N].width) / Canvas[N].height);
+            CanvasX = Math.round((ScreenW_ - CanvasW) / 2);
+        }
+        else
+        {
+            CanvasH = Math.floor((CanvasW * Canvas[N].height) / Canvas[N].width);
+            CanvasY = Math.round((ScreenH_ - CanvasH) / 2);
+        }
     }
     else
     {
-        CanvasH = Math.floor((CanvasW * Canvas[N].height) / Canvas[N].width);
+        CanvasW = Math.floor(Canvas[N].width / DispResolutionFactor);
+        CanvasH = Math.floor(Canvas[N].height / DispResolutionFactor);
+        CanvasX = Math.round((ScreenW_ - CanvasW) / 2);
         CanvasY = Math.round((ScreenH_ - CanvasH) / 2);
     }
+    
 
     if (DispMode > 0)
     {
@@ -289,7 +325,6 @@ function DisplayVisible(N, V)
         }
     }
 
-
     if (V)
     {
         Canvas[N].style["left"] = CanvasX + "px";
@@ -323,6 +358,176 @@ function DispPointerMod(DispPointer)
 
 var DisplayCanvasColor = true;
 
+function ScreenInfoSetColor(N)
+{
+    var ColorB = "";
+    var ColorF = "";
+    switch (N * 10 + ScreenInfoColor)
+    {
+        case 0:
+        case 11:
+            ColorB = "#FFFFFF";
+            ColorF = "#000000";
+            break;
+        case 10:
+        case 1:
+            ColorB = "#000000";
+            ColorF = "#FFFFFF";
+            break;
+    }
+    
+    ScreenInfo1.style["background-color"] = ColorB;
+    ScreenInfo1.style["color"] = ColorF;
+    ScreenInfo1.style["border-color"] = ColorF;
+    ScreenInfo2.style["background-color"] = ColorB;
+    ScreenInfo2.style["color"] = ColorF;
+    ScreenInfo2.style["border-color"] = ColorF;
+}
+
+function ScreenInfoSet(Obj, Corner, Info1, Info2)
+{
+    var PosX = 0;
+    var PosY = 0;
+    
+    var InverseInfo = false;            
+    switch (Corner * 10 + ScreenInfoOrientation)
+    {
+        case 0:
+        case 11:
+        case 32:
+        case 23:
+            Obj.style["text-align"] = "left";
+            break;
+        case 10:
+        case 31:
+        case 22:
+        case 3:
+            Obj.style["text-align"] = "right";
+            break;
+        case 20:
+        case 1:
+        case 12:
+        case 33:
+            Obj.style["text-align"] = "left";
+            InverseInfo = true;
+            break;
+        case 30:
+        case 21:
+        case 2:
+        case 13:
+            Obj.style["text-align"] = "right";
+            InverseInfo = true;
+            break;
+    }
+    if (Info2 != "")
+    {
+        if (InverseInfo)
+        {
+            Obj.innerHTML = Info1 + "<br>" + Info2;
+        }
+        else
+        {
+            Obj.innerHTML = Info2 + "<br>" + Info1;
+        }
+    }
+    else
+    {
+        Obj.innerHTML = Info1;
+    }
+
+
+    
+    var TempW = (Obj.clientWidth / 2);
+    var TempH = (Obj.clientHeight / 2);
+    if ((ScreenInfoOrientation == 1) || (ScreenInfoOrientation == 3))
+    {
+        PosX = PosX - TempW + TempH;
+        PosY = PosY - TempH + TempW;
+    }
+    Obj.style.transform = "rotate(" + parseInt(ScreenInfoOrientation * 90) + "deg)";
+
+    switch (Corner)
+    {
+        case 0:
+            Obj.style.left = PosX + "px";
+            Obj.style.top = PosY + "px";
+            break;
+        case 1:
+            Obj.style.right = PosX + "px";
+            Obj.style.top = PosY + "px";
+            break;
+        case 2:
+            Obj.style.left = PosX + "px";
+            Obj.style.bottom = PosY + "px";
+            break;
+        case 3:
+            Obj.style.right = PosX + "px";
+            Obj.style.bottom = PosY + "px";
+            break;
+    }
+}
+
+function PageText(N)
+{
+    var NN = "" + N + "";
+    var C = ("" + PageCount + "").length;
+    while (NN.length < C)
+    {
+        NN = "0" + NN;
+    }
+    return NN;
+}
+
+function PageCalcDisp(Pos)
+{
+    var PageNum1 = PageNum;
+    var PageNum2 = PageNum + 1;
+    if (DispMode != 0)
+    {
+        var Inv = false;
+        if ((DispMode == 2) || (DispMode == 4))
+        {
+            if ((PageNum % 2) == 0)
+            {
+                Inv = true;
+            }
+        }
+        else
+        {
+            if ((PageNum % 2) != 0)
+            {
+                Inv = true;
+            }
+        }
+        if (Inv)
+        {
+            if (Pos == 1)
+            {
+                return PageNum + 1;
+            }
+            if (Pos == 2)
+            {
+                return PageNum;
+            }
+        }
+        else
+        {
+            if (Pos == 1)
+            {
+                return PageNum;
+            }
+            if (Pos == 2)
+            {
+                return PageNum + 1;
+            }
+        }
+    }
+    else
+    {
+        return PageNum;
+    }
+    return Num;
+}
 
 function DisplayCanvas()
 {
@@ -375,10 +580,128 @@ function DisplayCanvas()
             DisplayVisible(I, false);
         }
     }
+    
+    var PageNum1 = PageCalcDisp(1);
+    var PageNum2 = PageCalcDisp(2);
+
+    var Info1 = ((PageNum1 > 0) ? (PageNum1 + "/" + PageCount) : "");
+    var Info2 = ((PageNum2 <= PageCount) ? (PageNum2 + "/" + PageCount) : "");
+    var Info1X = "";
+    var Info2X = "";
+    var Info0X = "";
+
+    if (AdjustMode == 1)
+    {
+        if (Info1 != "")
+        {
+            Info1X = CanvasBufW[PageNum1] + "x" + CanvasBufH[PageNum1];
+        }
+        if (Info2 != "")
+        {
+            Info2X = CanvasBufW[PageNum2] + "x" + CanvasBufH[PageNum2];
+        }
+    }
+    if (AdjustMode == 2)
+    {
+        var CropInfo = [];
+        CropInfo[0] = "L:" + Math.round(CropL[0] * 100) + " T:" + Math.round(CropT[0] * 100) + " R:" + Math.round(CropR[0] * 100) + " B:" + Math.round(CropB[0] * 100);
+        CropInfo[1] = "L:" + Math.round(CropL[1] * 100) + " T:" + Math.round(CropT[1] * 100) + " R:" + Math.round(CropR[1] * 100) + " B:" + Math.round(CropB[1] * 100);
+        if (Info1 != "")
+        {
+            Info1X = CropInfo[(PageNum1 - 1) % 2];
+        }
+        if (Info2 != "")
+        {
+            Info2X = CropInfo[(PageNum2 - 1) % 2];
+        }
+    }
+    if (AdjustMode == 3)
+    {
+        Info0X = "I:" + LevelsI1 + "," + LevelsGamma + "," + LevelsI2 + "  O:" + LevelsO1 + "," + LevelsO2;
+    }
+    if (Info0X != "")
+    {
+        if (Info1 != "")
+        {
+            Info1X = Info0X;
+        }
+        if (Info2 != "")
+        {
+            Info2X = Info0X;
+        }
+    }
+    
+
+    ScreenInfo1.style["font-size"] = ScreenInfoSize + "px";
+    ScreenInfo2.style["font-size"] = ScreenInfoSize + "px";
+
+    if (ScreenInfoDisplay == 0)
+    {
+        ScreenInfo1.style.display = "none";
+        ScreenInfo2.style.display = "none";
+    }
+    else
+    {
+        ScreenInfo1.style.display = (Info1 != "") ? "block" : "none";
+        ScreenInfo2.style.display = (Info2 != "") ? "block" : "none";
+        if (DispMode == 0)
+        {
+            ScreenInfoSet(ScreenInfo1, ScreenInfoDisplay - 1, Info1, Info1X);
+            ScreenInfoSet(ScreenInfo2, ScreenInfoDisplay - 1, Info2, Info2X);
+            ScreenInfo2.style.display = "none";
+        }
+        else
+        {
+            switch (ScreenInfoDisplay * 10 + PageLayout)
+            {
+                case 10:
+                case 20:
+                    ScreenInfoSet(ScreenInfo1, 0, Info1, Info1X);
+                    ScreenInfoSet(ScreenInfo2, 1, Info2, Info2X);
+                    break;
+                case 30:
+                case 40:
+                    ScreenInfoSet(ScreenInfo1, 2, Info1, Info1X);
+                    ScreenInfoSet(ScreenInfo2, 3, Info2, Info2X);
+                    break;
+                case 11:
+                case 31:
+                    ScreenInfoSet(ScreenInfo1, 0, Info1, Info1X);
+                    ScreenInfoSet(ScreenInfo2, 2, Info2, Info2X);
+                    break;
+                case 21:
+                case 41:
+                    ScreenInfoSet(ScreenInfo1, 1, Info1, Info1X);
+                    ScreenInfoSet(ScreenInfo2, 3, Info2, Info2X);
+                    break;
+                case 12:
+                case 22:
+                    ScreenInfoSet(ScreenInfo1, 1, Info1, Info1X);
+                    ScreenInfoSet(ScreenInfo2, 0, Info2, Info2X);
+                    break;
+                case 32:
+                case 42:
+                    ScreenInfoSet(ScreenInfo1, 3, Info1, Info1X);
+                    ScreenInfoSet(ScreenInfo2, 2, Info2, Info2X);
+                    break;
+                case 13:
+                case 33:
+                    ScreenInfoSet(ScreenInfo1, 2, Info1, Info1X);
+                    ScreenInfoSet(ScreenInfo2, 0, Info2, Info2X);
+                    break;
+                case 23:
+                case 43:
+                    ScreenInfoSet(ScreenInfo1, 3, Info1, Info1X);
+                    ScreenInfoSet(ScreenInfo2, 1, Info2, Info2X);
+                    break;
+            }
+        }
+    }
 }
 
 function DisplayPages()
 {
+    ScreenInfoSetColor(1);
     for (var I = 0; I < DispBufSize; I++)
     {
         if (!DispLoaded[I])
@@ -389,6 +712,8 @@ function DisplayPages()
         }
     }
     PageRendering = false;
+    ScreenInfoSetColor(0);
+    
     if (DispFirst)
     {
         DisplayCanvas();
@@ -400,11 +725,11 @@ function CanvasCopy(CSrc, CDst)
 {
     if (!CDst)
     {
-        CDst = document.createElement('canvas');
+        CDst = document.createElement("canvas");
     }
     CDst.width = CSrc.width;
     CDst.height = CSrc.height;
-    CDst.getContext('2d').drawImage(CSrc, 0, 0);
+    CDst.getContext("2d").drawImage(CSrc, 0, 0);
     return CDst;
 }
 
@@ -414,21 +739,70 @@ function RenderPagePaint()
     DisplayPages();
 }
 
+
+function RenderPageGuide(num, ScrNum)
+{
+    if (AdjustMode == 2)
+    {
+        var CanvasW_ = CanvasBufW[num];
+        var CanvasH_ = CanvasBufH[num];
+        var Temp = CanvasCtx[ScrNum].getImageData(0, 0, CanvasW_, CanvasH_);
+
+        var PT = [];
+        var PTL = CanvasBufGuideW[num][0];
+        for (var I = 0; I < PTL; I++)
+        {
+            PT[I] = CanvasBufGuideW[num][I + 1];
+        }
+        for (var Y = 0; Y < CanvasH_; Y++)
+        {
+            for (var I = 0; I < PTL; I++)
+            {
+                Temp.data[PT[I] + 0] = PaintThreshold[Temp.data[PT[I] + 0]];
+                Temp.data[PT[I] + 1] = PaintThreshold[Temp.data[PT[I] + 1]];
+                Temp.data[PT[I] + 2] = PaintThreshold[Temp.data[PT[I] + 2]];
+                PT[I] += (CanvasW_ * 4);
+            }
+        }
+
+        PT = [];
+        PTL = CanvasBufGuideH[num][0];
+        for (var I = 0; I < PTL; I++)
+        {
+            PT[I] = CanvasBufGuideH[num][I + 1];
+        }
+        for (var Y = 0; Y < CanvasW_; Y++)
+        {
+            for (var I = 0; I < PTL; I++)
+            {
+                Temp.data[PT[I] + 0] = PaintThreshold[Temp.data[PT[I] + 0]];
+                Temp.data[PT[I] + 1] = PaintThreshold[Temp.data[PT[I] + 1]];
+                Temp.data[PT[I] + 2] = PaintThreshold[Temp.data[PT[I] + 2]];
+                PT[I] += 4;
+            }
+        }
+
+        CanvasCtx[ScrNum].putImageData(Temp, 0, 0);
+    }
+}
+
 function RenderPage(num, ScrNum)
 {
     if ((num < 1) || (num > PageCount))
     {
         Canvas[ScrNum].width = 1;
         Canvas[ScrNum].height = 1;
-        CanvasCtx[ScrNum].fillStyle = 'black';
+        CanvasCtx[ScrNum].fillStyle = "black";
         CanvasCtx[ScrNum].fillRect(0, 0, 11, 11);        
         setTimeout(function(){ DisplayPages(); }, 10);
         return;
     }
+
     
     if (CanvasBuf[num])
     {
         CanvasCopy(CanvasBuf[num], Canvas[ScrNum]);
+        RenderPageGuide(num, ScrNum);
         RenderPagePaint();
     }
     else
@@ -472,14 +846,24 @@ function RenderPage(num, ScrNum)
             var viewport = null;
             switch (PageOrientation)
             {
-                case 0: viewport = page.getViewport({ scale: scale, rotation: 0   }); break;
-                case 1: viewport = page.getViewport({ scale: scale, rotation: 90  }); break;
-                case 2: viewport = page.getViewport({ scale: scale, rotation: 180 }); break;
-                case 3: viewport = page.getViewport({ scale: scale, rotation: 270 }); break;
+                case 0: viewport = page.getViewport({ scale: Scale, rotation: 0   }); break;
+                case 1: viewport = page.getViewport({ scale: Scale, rotation: 90  }); break;
+                case 2: viewport = page.getViewport({ scale: Scale, rotation: 180 }); break;
+                case 3: viewport = page.getViewport({ scale: Scale, rotation: 270 }); break;
             }
             
-            var CanvasW_ = Math.floor(viewport.width * (1.0 - (CropL_ + CropR_)));
-            var CanvasH_ = Math.floor(viewport.height * (1.0 - (CropT_ + CropB_)));
+            var CanvasW_ = 0;
+            var CanvasH_ = 0;
+            if (DispNotStretch == 1)
+            {
+                CanvasW_ = Math.round(Math.floor((viewport.width  * (1.0 - (CropL_ + CropR_))) / DispResolutionFactor) * DispResolutionFactor);
+                CanvasH_ = Math.round(Math.floor((viewport.height * (1.0 - (CropT_ + CropB_))) / DispResolutionFactor) * DispResolutionFactor);
+            }
+            else
+            {
+                CanvasW_ = Math.floor(viewport.width  * (1.0 - (CropL_ + CropR_)));
+                CanvasH_ = Math.floor(viewport.height * (1.0 - (CropT_ + CropB_)));
+            }
             Canvas[ScrNum].width = CanvasW_;
             Canvas[ScrNum].height = CanvasH_;
             
@@ -509,53 +893,39 @@ function RenderPage(num, ScrNum)
                         P += 4;
                     }
                 }
-                if (AdjustMode == 1)
+                
+                CanvasBufGuideW[num] = [];
+                CanvasBufGuideH[num] = [];
+                CanvasBufGuideW[num].push(0);
+                CanvasBufGuideH[num].push(0);
+
+                for (var I = 0; I < 9; I++)
                 {
-                    var PT = [];
-                    var PTL = 0;
-                    for (var I = 0; I < 9; I++)
-                    {
-                        var Pointer = Math.round(((viewport.width * (I + 1)) / 10.0) + TranslateX);
-                        if (((Pointer - 1) >= 0) && ((Pointer - 1) < CanvasW_)) { PT.push((Pointer - 1) * 4); PTL++; }
-                        if (((Pointer + 0) >= 0) && ((Pointer + 0) < CanvasW_)) { PT.push((Pointer + 0) * 4); PTL++; }
-                        if (((Pointer + 1) >= 0) && ((Pointer + 1) < CanvasW_)) { PT.push((Pointer + 1) * 4); PTL++; }
-                    }
-                    for (var Y = 0; Y < CanvasH_; Y++)
-                    {
-                        for (var I = 0; I < PTL; I++)
-                        {
-                            Temp.data[PT[I] + 0] = PaintThreshold[Temp.data[PT[I] + 0]];
-                            Temp.data[PT[I] + 1] = PaintThreshold[Temp.data[PT[I] + 1]];
-                            Temp.data[PT[I] + 2] = PaintThreshold[Temp.data[PT[I] + 2]];
-                            PT[I] += (CanvasW_ * 4);
-                        }
-                    }
-                    PT = [];
-                    PTL = 0;
-                    for (var I = 0; I < 9; I++)
-                    {
-                        var Pointer = Math.round(((viewport.height * (I + 1)) / 10.0) + TranslateY);
-                        if (((Pointer - 1) >= 0) && ((Pointer - 1) < CanvasH_)) { PT.push(((Pointer - 1) * 4 * CanvasW_)); PTL++; }
-                        if (((Pointer + 0) >= 0) && ((Pointer + 0) < CanvasH_)) { PT.push(((Pointer + 0) * 4 * CanvasW_)); PTL++; }
-                        if (((Pointer + 1) >= 0) && ((Pointer + 1) < CanvasH_)) { PT.push(((Pointer + 1) * 4 * CanvasW_)); PTL++; }
-                    }
-                    for (var Y = 0; Y < CanvasW_; Y++)
-                    {
-                        for (var I = 0; I < PTL; I++)
-                        {
-                            Temp.data[PT[I] + 0] = PaintThreshold[Temp.data[PT[I] + 0]];
-                            Temp.data[PT[I] + 1] = PaintThreshold[Temp.data[PT[I] + 1]];
-                            Temp.data[PT[I] + 2] = PaintThreshold[Temp.data[PT[I] + 2]];
-                            PT[I] += 4;
-                        }
-                    }
+                    var Pointer = Math.round(((viewport.width * (I + 1)) / 10.0) + TranslateX);
+                    if (((Pointer - 1) >= 0) && ((Pointer - 1) < CanvasW_)) { CanvasBufGuideW[num].push((Pointer - 1) * 4); CanvasBufGuideW[num][0]++; }
+                    if (((Pointer + 0) >= 0) && ((Pointer + 0) < CanvasW_)) { CanvasBufGuideW[num].push((Pointer + 0) * 4); CanvasBufGuideW[num][0]++; }
+                    if (((Pointer + 1) >= 0) && ((Pointer + 1) < CanvasW_)) { CanvasBufGuideW[num].push((Pointer + 1) * 4); CanvasBufGuideW[num][0]++; }
+
+                    Pointer = Math.round(((viewport.height * (I + 1)) / 10.0) + TranslateY);
+                    if (((Pointer - 1) >= 0) && ((Pointer - 1) < CanvasH_)) { CanvasBufGuideH[num].push(((Pointer - 1) * 4 * CanvasW_)); CanvasBufGuideH[num][0]++; }
+                    if (((Pointer + 0) >= 0) && ((Pointer + 0) < CanvasH_)) { CanvasBufGuideH[num].push(((Pointer + 0) * 4 * CanvasW_)); CanvasBufGuideH[num][0]++; }
+                    if (((Pointer + 1) >= 0) && ((Pointer + 1) < CanvasH_)) { CanvasBufGuideH[num].push(((Pointer + 1) * 4 * CanvasW_)); CanvasBufGuideH[num][0]++; }
                 }
+
                 CanvasCtx[ScrNum].putImageData(Temp, 0, 0);
                 CanvasBuf[num] = CanvasCopy(Canvas[ScrNum], null);
+                CanvasBufW[num] = CanvasW_;
+                CanvasBufH[num] = CanvasH_;
+                RenderPageGuide(num, ScrNum);
                 RenderPagePaint();
             });
         });
     }
+}
+
+function SwitchPage0()
+{
+    SwitchPage(0);
 }
 
 function SwitchPage(N)
@@ -573,6 +943,13 @@ function SwitchPage(N)
             return;
         }
         DispFirst = true;
+    }
+    if ((DispMode == 3) || (DispMode == 4))
+    {
+        if ((N == 10) || (N == -10))
+        {
+            N = N / 2;
+        }
     }
     while (N < 0)
     {
@@ -670,20 +1047,21 @@ function ScreenSwitchAdjust()
 {
     PedalAdjust = true;
     AdjustMode++;
-    if (AdjustMode == 3)
+    if (AdjustMode == 5)
     {
         AdjustMode = 0;
     }
     switch (AdjustMode)
     {
         case 0: alert("Ten pages"); break;
-        case 1: alert("Crop"); break;
-        case 2: alert("Levels"); break;
+        case 1: alert("Resolution"); break;
+        case 2: alert("Crop"); break;
+        case 3: alert("Levels"); break;
+        case 4: alert("Save image"); break;
     }
     PedalAdjust = false;
     PedalKeyboardClear();
-    CanvasBuf = [];
-    PedalKeyboardClear();
+    //CanvasBuf = [];
     DisplayRefresh();
 }
 

@@ -9,12 +9,12 @@ var PedalAdjust = false;
 
 function PedalSet()
 {
-    PedalMouseL = document.getElementById('PedalMouseL').selectedIndex;
-    PedalMouseR = document.getElementById('PedalMouseR').selectedIndex;
-    PedalMouseM = document.getElementById('PedalMouseM').selectedIndex;
-    PedalKey1 =   document.getElementById('PedalKey1').selectedIndex;
-    PedalKey2 =   document.getElementById('PedalKey2').selectedIndex;
-    PedalKey3 =   document.getElementById('PedalKey3').selectedIndex;
+    PedalMouseL = document.getElementById("PedalMouseL").selectedIndex;
+    PedalMouseR = document.getElementById("PedalMouseR").selectedIndex;
+    PedalMouseM = document.getElementById("PedalMouseM").selectedIndex;
+    PedalKey1 =   document.getElementById("PedalKey1").selectedIndex;
+    PedalKey2 =   document.getElementById("PedalKey2").selectedIndex;
+    PedalKey3 =   document.getElementById("PedalKey3").selectedIndex;
 }
 
 function PedalMouse(Btn)

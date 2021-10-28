@@ -34,8 +34,6 @@
             PDF file: <input type="file" id="FileName" onchange="LoadFileChange()"><br>
             <br>
 
-            Resolution: <input type="number" id="PageScale" value="1" min="1" max="1000000" size="5"><br>
-
             Display mode: <select id="DisplayMode" onchange="PreviewUpdate()">
                 <option>Single page</option>
                 <option>Even-odd, flip one</option>
@@ -77,6 +75,29 @@
                 <tr><td align="center">X</td><td align="center">X</td><td align="center">X</td><td align="center">X</td></tr>
                 <tr><td align="center">X</td><td align="center">X</td><td align="center">X</td><td align="center">X</td></tr>
             </table>
+            <br>
+
+            Info display: <select id="ScreenInfoDisplay" onchange="PreviewUpdate()">
+                <option>None</option>
+                <option>Top left</option>
+                <option>Top right</option>
+                <option>Bottom left</option>
+                <option>Bottom right</option>
+            </select><br>
+            
+            Info orient.: <select id="ScreenInfoOrientation" onchange="PreviewUpdate()">
+                <option>Up</option>
+                <option>Right</option>
+                <option>Down</option>
+                <option>Left</option>
+            </select><br>
+            
+            Info size: <input type="number" id="ScreenInfoSize" value="20" min="1" max="1000000" size="5" onchange="PreviewUpdate()"><br>
+
+            Info color: <select id="ScreenInfoColor" onchange="PreviewUpdate()">
+                <option>Black on white</option>
+                <option>White on black</option>
+            </select><br>
 
             <br>
 
@@ -84,6 +105,15 @@
             <button onclick="LoadFile()">&nbsp;<br>&nbsp;&nbsp;Show file&nbsp;&nbsp;<br>&nbsp;</button>
             
             <br>
+            <br>
+            
+            Resolution:<br>
+            - Numerator: <input type="number" id="PageScaleN" value="1" min="1" max="1000000" size="5"><br>
+            - Denominator: <input type="number" id="PageScaleD" value="1" min="1" max="1000000" size="5"><br>
+            - Stretch image: <select id="DispNotStretch" onchange="PreviewUpdate()">
+                <option>Yes</option>
+                <option>No</option>
+            </select><br>
             <br>
 
             Crop:
@@ -129,6 +159,12 @@
             <br>
 
             Adjust area: <input type="number" id="AdjustArea" value="20" min="0" max="100" size="5"><br>
+
+            Save image: <select id="SaveImageMode">
+                <option>Download</option>
+                <option>Open</option>
+            </select><br>
+
             Pointer type: <select id="TouchScreen">
                 <option>Mouse</option>
                 <option>Touch</option>
@@ -188,7 +224,7 @@
 
         </div>
 
-        <div id="Screen" class="unselectable" style="display:none;background-color:#010000;width:100px; height:100px;overflow:auto;border-style:none; position: relative;">
+        <div id="Screen" class="unselectable" style="display:none;background-color:#010000;width:100px; height:100px;overflow:hidden;border-style:none; position: relative;">
             <canvas id="Screen0" style="border: 0px solid #000000; position: absolute; left:0px; top:0px; display: none;"></canvas>
             <canvas id="Screen1" style="border: 0px solid #000000; position: absolute; left:0px; top:0px; display: none;"></canvas>
             <canvas id="Screen2" style="border: 0px solid #000000; position: absolute; left:0px; top:0px; display: none;"></canvas>
@@ -196,9 +232,13 @@
             <canvas id="Screen4" style="border: 0px solid #000000; position: absolute; left:0px; top:0px; display: none;"></canvas>
             <canvas id="Screen5" style="border: 0px solid #000000; position: absolute; left:0px; top:0px; display: none;"></canvas>
 
+            <div id="ScreenInfo1" style="border: 1px solid #000000; background-color: #000000; color: #000000; position: absolute; display: block;"></div>
+            <div id="ScreenInfo2" style="border: 1px solid #000000; background-color: #000000; color: #000000; position: absolute; display: block;"></div>
+
             <div id="ScreenMouse" style="background-color:#000000; opacity: 0.00; position: absolute; left:0px; top:0px; right:0px; bottom:0px">
         </div>
         <script src="init.js"></script>
+        <a target="_blank" id="TempLink"></a>
 
 
     </body> 

@@ -134,8 +134,8 @@ function MouseUp_0(Evt)
 
 function MouseInit()
 {
-    ScreenX = document.getElementById('Screen');
-    ScreenMouse = document.getElementById('ScreenMouse');
+    ScreenX = document.getElementById("Screen");
+    ScreenMouse = document.getElementById("ScreenMouse");
     ScreenMouse.addEventListener("mousedown", MouseDown_);
     ScreenMouse.addEventListener("mousemove", MouseMove_);
     ScreenMouse.addEventListener("mouseup", MouseUp_);
