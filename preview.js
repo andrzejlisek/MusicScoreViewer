@@ -25,7 +25,6 @@ function PreviewUpdate()
     ScreenInfoOrientation = document.getElementById("ScreenInfoOrientation").selectedIndex;
     ScreenInfoSize = document.getElementById("ScreenInfoSize").value;
     ScreenInfoColor = document.getElementById("ScreenInfoColor").selectedIndex;
-    DispNotStretch = document.getElementById("DispNotStretch").selectedIndex;
 
 
     var Space1 = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>";

@@ -102,6 +102,7 @@ function LoadPdf(data)
     AdjustArea = document.getElementById("AdjustArea").value;
     ScaleN = parseFloat(document.getElementById("PageScaleN").value);
     ScaleD = parseFloat(document.getElementById("PageScaleD").value);
+    DispNotStretch = document.getElementById("DispNotStretch").selectedIndex;
     
     ScreenInfo1 = document.getElementById("ScreenInfo1");
     ScreenInfo2 = document.getElementById("ScreenInfo2");
