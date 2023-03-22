@@ -301,7 +301,7 @@ function AdjustLoad(Key)
             document.getElementById("PageScaleD").value             = DataGetIDefault(AdjustLS + "PageScaleD",     document.getElementById("PageScaleD").value);
             document.getElementById("DispNotStretch").selectedIndex = DataGetIDefault(AdjustLS + "DispNotStretch", document.getElementById("DispNotStretch").selectedIndex);
             
-            document.getElementById("CropL0").value = DataGetIDefault(AdjustLS + "CropL0", document.getElementById("CropL0").value)
+            document.getElementById("CropL0").value = DataGetIDefault(AdjustLS + "CropL0", document.getElementById("CropL0").value);
             document.getElementById("CropT0").value = DataGetIDefault(AdjustLS + "CropT0", document.getElementById("CropT0").value);
             document.getElementById("CropR0").value = DataGetIDefault(AdjustLS + "CropR0", document.getElementById("CropR0").value);
             document.getElementById("CropB0").value = DataGetIDefault(AdjustLS + "CropB0", document.getElementById("CropB0").value);

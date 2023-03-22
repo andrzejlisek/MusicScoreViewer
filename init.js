@@ -5,7 +5,7 @@ SettingsLoad();
 window.oncontextmenu = function ()
 {
     return false;
-}
+};
 
 PedalKeyboardClear();
 
